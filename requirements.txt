@@ -1,0 +1,7 @@
+pyrealsense2~=2.54.1.5217
+opencv-python~=4.8.0.74
+numpy~=1.24.2
+pyzbar~=0.1.9
+torch~=2.0.1+cu118
+ultralytics~=8.0.145
+tqdm~=4.65.0
