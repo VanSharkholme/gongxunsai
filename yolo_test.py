@@ -1,5 +1,6 @@
 from ultralytics import YOLO
 import cv2 as cv
+
 # model = YOLO('blue.yaml')
 
 
@@ -13,6 +14,7 @@ import cv2 as cv
 
 model = YOLO('runs/detect/train5/weights/best.pt')
 
+
 # model.train(resume=True)
 
 def set_camera_properties(capture):
@@ -22,14 +24,18 @@ def set_camera_properties(capture):
     # capture.set(cv.CAP_PROP_BRIGHTNESS, 1)
     # capture.set(cv.CAP_PROP_CONTRAST,40)
     # capture.set(cv.CAP_PROP_SATURATION, 50)
+
+
 # capture.set(cv.CAP_PROP_HUE, 50)
-    # capture.set(cv.CAP_PROP_EXPOSURE, 50)
+# capture.set(cv.CAP_PROP_EXPOSURE, 50)
 
 cap = cv.VideoCapture(0)
 set_camera_properties(cap)
 
-def get_center(coordinates):
-    return [int((coordinates[0] + coordinates[2])/2), int((coordinates[1]+coordinates[3])/2)]
+
+def get_center(coordinate):
+    return [int((coordinate[0] + coordinate[2]) / 2), int((coordinate[1] + coordinate[3]) / 2)]
+
 
 while True:
     ret, frame = cap.read()
@@ -42,9 +48,9 @@ while True:
     for i in range(len(classes)):
         object_coordinate = coordinates[i]
         center = get_center(object_coordinate)
-        text = 'x '+str(center[0])+'\ny '+str(center[1])
+        text = 'x ' + str(center[0]) + '\ny ' + str(center[1])
         if classes[i] > 2:
-            cv.putText(frame, text, [center[0]+2, center[1]-2], cv.FONT_HERSHEY_PLAIN, 0.75, (255, 255, 255), 2)
+            cv.putText(frame, text, [center[0] + 2, center[1] - 2], cv.FONT_HERSHEY_PLAIN, 0.75, (255, 255, 255), 2)
         if classes[i] == 3:
             cv.circle(frame, center, 2, (0, 255, 0), -1)
         elif classes[i] == 4:
@@ -52,13 +58,9 @@ while True:
         elif classes[i] == 5:
             cv.circle(frame, center, 2, (255, 0, 0), -1)
 
-
     print("name dict: ", name_dict)
     print("classes: ", classes)
     print("coordinates: ", coordinates)
-
-
-
 
     cv.imshow('camera', frame)
     # cv.imshow('contour', frame_contour)
