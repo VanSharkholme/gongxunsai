@@ -272,7 +272,7 @@ if __name__ == '__main__':
     r = p.open_port()
     m1.send_instruction(m1.Torque_Ena, 1, p)
     # for i in range(1024):
-    m1.send_instruction(m1.Goal_Position, 2048, p)
+    m1.send_instruction(m1.Goal_Position, 100, p)
     data, res, error = m1.read_info(m1.Present_Position, p)
 
     p.close_port()
