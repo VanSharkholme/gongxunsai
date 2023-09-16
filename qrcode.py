@@ -1,17 +1,19 @@
 import cv2 as cv
 from pyzbar import pyzbar
 
+
 def qrcode_recognition(img):
     msgs = pyzbar.decode(img)
     ret_data = []
     for msg in msgs:
         (x, y, w, h) = msg.rect
-        cv.rectangle(img, (x,y), (x+w, y+h), (0,0,255), 2)
+        cv.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 2)
         data = msg.data.decode("utf-8")
         ret_data.append(data)
         print(data)
-        cv.putText(img, data, (x,y - 10), cv.FONT_HERSHEY_COMPLEX, 0.5, (0,0,255), 2)
+        cv.putText(img, data, (x, y - 10), cv.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255), 2)
     return ret_data
+
 
 def set_camera_properties(capture):
     capture.set(cv.CAP_PROP_FRAME_WIDTH, 960)
@@ -24,7 +26,7 @@ def set_camera_properties(capture):
     # capture.set(cv.CAP_PROP_EXPOSURE, 50)
 
 
-cap = cv.VideoCapture(0)
+cap = cv.VideoCapture(0, cv.CAP_V4L2)
 
 print(cap.get(cv.CAP_PROP_BRIGHTNESS))
 set_camera_properties(cap)
@@ -38,18 +40,15 @@ while True:
     msgs = pyzbar.decode(threshold)
     for msg in msgs:
         (x, y, w, h) = msg.rect
-        cv.rectangle(frame, (x,y), (x+w, y+h), (0,0,255), 2)
+        cv.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
         data = msg.data.decode("utf-8")
         # ret_data.append(data)
         print(data)
-        cv.putText(frame, data, (x,y - 10), cv.FONT_HERSHEY_COMPLEX, 0.5, (0,0,255), 2)
+        cv.putText(frame, data, (x, y - 10), cv.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255), 2)
 
-    cv.imshow("camera",frame)
+    cv.imshow("camera", frame)
     if cv.waitKey(1) == 27:
+        cv.destroyAllWindows()
         break
 
-
 cap.release()
-
-
-
