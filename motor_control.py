@@ -1,5 +1,6 @@
 from dynamixel_sdk import *
 from typing import Optional
+import time
 
 
 # P = 2000 I = 6 D = 2650
@@ -101,6 +102,35 @@ class Motor:
             else:
                 raise Error("Data out of Range! Action Cancelled!!")
 
+    def reg_write(self,
+                  parameter: Parameter, data: int,
+                  port: Port, receive: bool = True) -> tuple[int, int] | int:
+        p_handler = port.portHandler
+        if check_data_range(data, parameter.range) \
+                and port.is_open:
+            data_cleaned = data_size_process(data, parameter.size)
+            if receive:
+                res, error = self.packetHandler.regWriteTxRx(p_handler, self.ID.cur_value,
+                                                          parameter.addr, parameter.size,
+                                                          data_cleaned)
+                if res != COMM_SUCCESS:
+                    raise Error(self.packetHandler.getTxRxResult(res))
+                elif error != 0:
+                    raise Error(self.packetHandler.getRxPacketError(error))
+                return res, error
+            else:
+                res = self.packetHandler.regWriteTxOnly(p_handler, self.ID.cur_value,
+                                                     parameter.addr, parameter.size,
+                                                     data_cleaned)
+                if res != COMM_SUCCESS:
+                    raise Error(self.packetHandler.getTxRxResult(res))
+                return res
+
+        else:
+            if not port.is_open:
+                raise Error("The Port is not Open!! Action Cancelled!!")
+            else:
+                raise Error("Data out of Range! Action Cancelled!!")
     def read_info(self,
                   parameter: Parameter,
                   port: Port) -> tuple[int, int, int]:
@@ -121,6 +151,93 @@ class Motor:
                                  DXL_MAKEWORD(data[2], data[3]))
 
         return data, res, error
+
+
+class MotorGroup:
+    def __init__(self, *args: Motor):
+        self.motors = []
+        self.IDs = []
+        self.p1_motors = []
+        self.p2_motors = []
+        self.is_same_type = True
+        if len(args) == 0:
+            raise Error('A Group needs to have at least one Motor!!!')
+        for motor in args:
+            self.motors.append(motor)
+            if motor.ID.cur_value in self.IDs:
+                raise Error("Duplicate IDs in the same group!!!")
+            else:
+                self.IDs.append(motor.ID.cur_value)
+            if motor.PROTOCOL_VERSION == 1.0:
+                self.p1_motors.append(motor)
+            elif motor.PROTOCOL_VERSION == 2.0:
+                self.p2_motors.append(motor)
+            else:
+                continue
+        if len(self.p1_motors) * len(self.p2_motors) != 0:
+            self.is_same_type = False
+        try:
+            self.packet_handler_p1 = self.p1_motors[0].packetHandler
+        except IndexError:
+            pass
+        try:
+            self.packet_handler_p2 = self.p2_motors[0].packetHandler
+        except IndexError:
+            pass
+        self.default_packet_handler = self.motors[0].packetHandler
+    def sync_write(self,
+                   parameter: Parameter, data: int, port: Port) -> int:
+        if not self.is_same_type:
+            raise Error('This function can only be used when all Motors in the Group are the same type!!!')
+        if check_data_range(data, parameter.range) \
+                and port.is_open:
+            port_handler = port.portHandler
+            packet_handler = self.default_packet_handler
+            addr = parameter.addr
+            data_len = parameter.size
+            groupSyncWrite = GroupSyncWrite(port_handler, packet_handler, addr, data_len)
+            data_cleaned = data_size_process(data, data_len)
+            for motor in self.motors:
+                groupSyncWrite.addParam(motor.ID.cur_value, data_cleaned)
+            comm_res = groupSyncWrite.txPacket()
+            if comm_res != COMM_SUCCESS:
+                raise Error(packet_handler.getTxRxResult(comm_res))
+            groupSyncWrite.clearParam()
+        else:
+            if not port.is_open:
+                raise Error("The Port is not Open!! Action Cancelled!!")
+            else:
+                raise Error("Data out of Range! Action Cancelled!!")
+
+    def sync_reg_write(self, port: Port, motor_instructs: list, action: bool = True) -> tuple[int, int] | int:
+        """
+        This function receives an instruction list as parameter, in this list, every
+        item should be another list consists of three items in this specific order:
+        [ motor, parameter to write, data ].
+        """
+        for i in range(len(motor_instructs)):
+            instruction = motor_instructs[i]
+            motor = instruction[0]
+            param = instruction[1]
+            data = instruction[2]
+            if motor not in self.motors:
+                raise Error('Motor %d does NOT belong to this group!!!')
+            res, error = motor.reg_write(param, data, port)
+        if action:
+            self.action(port)
+        return (res, error)
+
+    def action(self, port: Port):
+        port_handler = port.portHandler
+        try:
+            self.packet_handler_p2.action(port_handler, 254)
+        except AttributeError:
+            try:
+                self.packet_handler_p1.action(port_handler, 254)
+            except AttributeError:
+                self.default_packet_handler.action(port_handler, 254)
+
+
 
 
 class AX12A(Motor):
@@ -171,7 +288,7 @@ class XL330(Motor):
         self.Model_Num = Parameter(0, 2, 'R', 1200, None)
         self.Model_Info = Parameter(2, 4, 'R', None, None)
         self.Firmware_Version = Parameter(6, 1, 'R', None, None)
-        self.ID = Parameter(7, 1, 'RW', 1, list(range(253)), 1)
+        # self.ID = Parameter(7, 1, 'RW', 1, list(range(253)), 1)
         self.Baud = Parameter(8, 1, 'RW', 1, list(range(7)))
         self.Return_Delay_Time = Parameter(9, 1, 'RW', 250, list(range(255)))
         self.Drive_Mode = Parameter(10, 1, 'RW', 0, [0, 1, 2, 3, 4, 5])
@@ -266,15 +383,31 @@ class XL330(Motor):
 
 
 if __name__ == '__main__':
-    m1 = XL330(1)
-    m2 = AX12A(1)
+    m1 = AX12A(1)
+    m2 = AX12A(2)
     p = Port('COM3')
     r = p.open_port()
-    m1.send_instruction(m1.Torque_Ena, 1, p)
+    group1 = MotorGroup(m1, m2)
+    group1.sync_write(m1.Torque_Ena, 1, p)
+    group1.sync_write(m1.CW_Angle_Limit, 0, p)
+    group1.sync_write(m1.CCW_Angle_Limit, 0, p)
+    # m1.send_instruction(m1.Torque_Ena, 1, p)
+    # m2.send_instruction(m2.Torque_Ena, 1, p)
     # for i in range(1024):
-    m1.send_instruction(m1.Goal_Position, 100, p)
-    data, res, error = m1.read_info(m1.Present_Position, p)
-
+    # m1.send_instruction(m1.Goal_Position, 100, p)
+    # data, res, error = m1.read_info(m1.Present_Position, p)
+    instructions = [
+        [m1, m1.Moving_Speed, 800],
+        [m2, m2.Moving_Speed, 1824]
+    ]
+    group1.sync_reg_write(p, instructions)
+    time.sleep(3)
+    # group1.action(p)
+    instructions = [
+        [m1, m1.Moving_Speed, 0],
+        [m2, m2.Moving_Speed, 0]
+    ]
+    group1.sync_reg_write(p, instructions)
+    # group1.action(p)
     p.close_port()
-
-    pass
+    exit()
