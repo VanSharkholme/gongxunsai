@@ -1,7 +1,7 @@
 from dynamixel_sdk import *
 from typing import Optional
 import time
-
+import os
 
 # P = 2000 I = 6 D = 2650
 
@@ -385,7 +385,10 @@ class XL330(Motor):
 if __name__ == '__main__':
     m1 = AX12A(1)
     m2 = AX12A(2)
-    p = Port('COM3')
+    if os.name == 'nt':
+        p = Port('COM3')
+    else:
+        p = Port('/dev/ttyUSB0')
     r = p.open_port()
     group1 = MotorGroup(m1, m2)
     group1.sync_write(m1.Torque_Ena, 1, p)
