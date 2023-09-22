@@ -385,29 +385,47 @@ class XL330(Motor):
 if __name__ == '__main__':
     m1 = AX12A(1)
     m2 = AX12A(2)
+    m3 = AX12A(3)
+    m4 = AX12A(4)
+    M1 = XL330(1)
+    M2 = XL330(2)
+    M3 = XL330(3)
+    M4 = XL330(4)
     p = Port('COM3')
     r = p.open_port()
-    group1 = MotorGroup(m1, m2)
-    group1.sync_write(m1.Torque_Ena, 1, p)
-    group1.sync_write(m1.CW_Angle_Limit, 0, p)
-    group1.sync_write(m1.CCW_Angle_Limit, 0, p)
+    # group1 = MotorGroup(m1, m2, m3, m4)
+    group2 = MotorGroup(M1, M2, M3, M4)
+    # group1.sync_write(m1.Torque_Ena, 1, p)
+    group2.sync_write(M1.Velocity_Limit, 50, p)
+    group2.sync_write(M1.Torque_Ena, 1, p)
+    # group1.sync_write(m1.CW_Angle_Limit, 0, p)
+    # group1.sync_write(m1.CCW_Angle_Limit, 0, p)
+    group2.sync_write(M1.Operating_Mode, 3, p)
+    group2.sync_write(M1.Goal_Position, 2048, p)
+    input()
+    group2.sync_write(M1.Torque_Ena, 0, p)
+
     # m1.send_instruction(m1.Torque_Ena, 1, p)
     # m2.send_instruction(m2.Torque_Ena, 1, p)
     # for i in range(1024):
     # m1.send_instruction(m1.Goal_Position, 100, p)
     # data, res, error = m1.read_info(m1.Present_Position, p)
-    instructions = [
-        [m1, m1.Moving_Speed, 800],
-        [m2, m2.Moving_Speed, 1824]
-    ]
-    group1.sync_reg_write(p, instructions)
-    time.sleep(3)
+    # instructions = [
+    #     [m1, m1.Moving_Speed, 1000],
+    #     [m2, m2.Moving_Speed, 2024],
+    #     [m3, m3.Moving_Speed, 1000],
+    #     [m4, m4.Moving_Speed, 2024]
+    # ]
+    # group1.sync_reg_write(p, instructions)
+    # time.sleep(3)
     # group1.action(p)
-    instructions = [
-        [m1, m1.Moving_Speed, 0],
-        [m2, m2.Moving_Speed, 0]
-    ]
-    group1.sync_reg_write(p, instructions)
+    # instructions = [
+    #     [m1, m1.Moving_Speed, 0],
+    #     [m2, m2.Moving_Speed, 0],
+    #     [m3, m3.Moving_Speed, 0],
+    #     [m4, m4.Moving_Speed, 0],
+    # ]
+    # group1.sync_reg_write(p, instructions)
     # group1.action(p)
     p.close_port()
     exit()
