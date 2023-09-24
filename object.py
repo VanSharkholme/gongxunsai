@@ -19,7 +19,7 @@ align_to = rs.stream.color
 align = rs.align(align_to)
 
 # YOLO部分
-model = YOLO('runs/detect/train5/weights/best-sim.onnx')
+model = YOLO('runs/detect/train6/weights/best.pt')
 
 
 def get_center(coordinates):
