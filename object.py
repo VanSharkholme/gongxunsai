@@ -2,6 +2,9 @@ import pyrealsense2 as rs
 import numpy as np
 import cv2
 from ultralytics import YOLO
+from motor_control_no_annotations import *
+import os
+import sys
 
 pipeline = rs.pipeline()
 config = rs.config()
@@ -25,6 +28,15 @@ model = YOLO('runs/detect/train6/weights/best.pt')
 def get_center(coordinates):
     return [int((coordinates[0] + coordinates[2]) / 2), int((coordinates[1] + coordinates[3]) / 2)]
 
+
+m1 = XL330(4)
+if os.name == 'nt':
+    p = Port('COM3')
+else:
+    p = Port('/dev/ttyUSB0')
+r = p.open_port()
+m1.send_instruction(m1.Torque_Ena, 1, p)
+m1.send_instruction(m1.Goal_Position, 2048, p)
 
 try:
     while True:
@@ -84,4 +96,7 @@ try:
 
 finally:
     # Stop streaming
+    m1.send_instruction(m1.Torque_Ena, 0, p)
+    p.close_port()
     pipeline.stop()
+    sys.exit()
