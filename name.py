@@ -3,10 +3,11 @@ import os
 #
 # print(rs.__path__)
 
-path = 'pic/intel1.mp4/'
+path = 'pic/target1/'
 f = os.listdir(path)
-n = 817
+n = 422
 for i in f:
     newname = str(n)+'.jpg'
-    os.rename(path+i, 'clear_pic/'+newname)
+    os.rename(path+i, 'targets_orig_data/'+newname)
     n += 1
+print('done')

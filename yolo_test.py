@@ -10,7 +10,7 @@ model = YOLO('yolov5n.pt')  # build a new model from YAML
 # model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # build from YAML and transfer weights
 
 # Train the model
-model.train(data='rgb.yaml', epochs=100, imgsz=640, device=0, workers=0)
+model.train(data='targets.yaml', epochs=100, imgsz=640, device=0, workers=0)
 
 # model = YOLO('runs/detect/train5/weights/best.pt')
 

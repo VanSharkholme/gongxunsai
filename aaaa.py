@@ -57,5 +57,7 @@ def video_split(video_path, save_path):
 # f = os.listdir('raw_videos/')
 # print(f)
 # for i in f:
-video_split('raw_videos/intel1.mp4', 'pic/intel1.mp4')
+video_split('raw_videos/target3.mp4', 'pic/target3')
+print('done')
+
 # video_split('video.mp4','pic')

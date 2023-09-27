@@ -1,0 +1,10 @@
+path: target_dataset
+
+train: images/train
+val: images/val
+test: images/val
+
+names:
+  0: t_blue
+  1: t_green
+  2: t_red
