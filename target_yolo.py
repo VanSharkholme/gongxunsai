@@ -10,9 +10,9 @@ def get_center(coordinates):
     return [int((coordinates[0] + coordinates[2]) / 2), int((coordinates[1] + coordinates[3]) / 2)]
 
 
-cam = realsense_cam((640, 480), 30)
+cam = realsense_cam((1280, 720), 30)
 
-model = YOLO('runs/detect/train8/weights/best-sim.onnx')
+model = YOLO('runs/detect/train8/weights/best.pt')
 
 
 # try:
@@ -23,7 +23,7 @@ while True:
     depth_frame = frames['depth']
     depth_intrinsics = cam.depth_intrinsics
 
-    predictions = model(color_frame, device='0', show=False)
+    predictions = model.predict(color_frame, device='0', show=False)
 
     name_dict = predictions[0].names
     classes = predictions[0].boxes.cls.cpu().numpy()
