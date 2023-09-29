@@ -12,7 +12,7 @@ def get_center(coordinates):
 
 cam = realsense_cam((1280, 720), 30)
 
-model = YOLO('runs/detect/train8/weights/best.pt')
+model = YOLO('runs/detect/train8/weights/best.engine')
 
 
 # try:
