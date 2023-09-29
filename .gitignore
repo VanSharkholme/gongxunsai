@@ -14,3 +14,5 @@
 /target_dataset
 /targets_orig_data
 Labelme.exe
+/EasyRun-jetson-nano-yolov5
+/yolov5
