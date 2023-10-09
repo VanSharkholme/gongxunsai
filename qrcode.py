@@ -2,7 +2,7 @@ import cv2 as cv
 from realsense_start import *
 from pyzbar import pyzbar
 import sys
-
+from serial_screen import *
 
 def qrcode_recognition(img):
     msgs = pyzbar.decode(img)
@@ -13,7 +13,7 @@ def qrcode_recognition(img):
         data = msg.data.decode("utf-8")
         ret_data.append(data)
         print(data)
-        cv.putText(img, data, (x, y - 10), cv.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255), 2)
+        # cv.putText(img, data, (x, y - 10), cv.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255), 2)
     return ret_data
 
 
@@ -44,18 +44,20 @@ try:
         threshold = cv.morphologyEx(threshold, cv.MORPH_CLOSE, (3, 3))
         # tmp = qrcode_recognition(frame)
         msgs = pyzbar.decode(grayed)
-        for msg in msgs:
-            (x, y, w, h) = msg.rect
-            cv.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
-            data = msg.data.decode("utf-8")
+        if msgs:
+        # (x, y, w, h) = msg.rect
+        # cv.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+            data = msgs[0].data.decode("utf-8")
             # ret_data.append(data)
             print(data)
-            cv.putText(frame, data, (x, y - 10), cv.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255), 2)
+            send_serial(data)
 
-        cv.imshow("camera", frame)
-        if cv.waitKey(1) == 27:
-            cv.destroyAllWindows()
-            break
+            # cv.putText(frame, data, (x, y - 10), cv.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255), 2)
+
+        # cv.imshow("camera", frame)
+        # if cv.waitKey(1) == 27:
+        #     cv.destroyAllWindows()
+        #     break
 
 finally:
     cam.stop()

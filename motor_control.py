@@ -66,11 +66,12 @@ def data_size_process(data: int, d_size: int) -> list:
 
 
 class Motor:
-    def __init__(self, motor_id):
+    def __init__(self, motor_id, robot_id=''):
         self.type = ''
         self.PROTOCOL_VERSION = 1.0
         self.ID = Parameter(3, 1, 'RW', 1, list(range(0, 254)), motor_id)
         self.packetHandler = PacketHandler(self.PROTOCOL_VERSION)
+        self.RobotID = robot_id
 
     def send_instruction(self,
                          parameter: Parameter, data: int,
@@ -241,8 +242,8 @@ class MotorGroup:
 
 
 class AX12A(Motor):
-    def __init__(self, motor_id):
-        super().__init__(motor_id)
+    def __init__(self, motor_id, robot_id=''):
+        super().__init__(motor_id, robot_id)
         self.PROTOCOL_VERSION = 1.0
         self.type = 'AX12A'
         self.Model_Num = Parameter(0, 2, 'R', 12, None)
@@ -281,8 +282,8 @@ class AX12A(Motor):
 
 
 class XL330(Motor):
-    def __init__(self, motor_id):
-        super().__init__(motor_id)
+    def __init__(self, motor_id, robot_id=''):
+        super().__init__(motor_id, robot_id)
         self.PROTOCOL_VERSION = 2.0
         self.type = 'XL330'
         self.Model_Num = Parameter(0, 2, 'R', 1200, None)
