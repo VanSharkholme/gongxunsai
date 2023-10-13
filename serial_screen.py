@@ -1,9 +1,10 @@
+import os
 import sys
 import serial
 
 def send_serial(message):
     try:
-        portx = "COM4"
+        portx = "COM4" if os.name == 'nt' else "/dev/ttyTHS1"
         bps = 115200
         timex = 5
         ser = serial.Serial(portx, bps, timeout=timex)

@@ -4,11 +4,11 @@ import sys
 import numpy as np
 from numpy import sin, cos, arctan2, radians, degrees
 from math import pi
-from motor_control import Motor, MotorGroup, XL330, AX12A, Port, COMM_SUCCESS
+from motor_control import Motor, MotorGroup, XL330, XL430, Port, COMM_SUCCESS
 
 
 class Joint:
-    def __init__(self, motor: AX12A | XL330, parent, child, low_lim, up_lim, speed_lim):
+    def __init__(self, motor: XL330 | XL430, parent, child, low_lim, up_lim, speed_lim):
         self.parent = parent
         self.child = child
         self.limit = [low_lim, up_lim]
@@ -64,10 +64,10 @@ class EndEffector:
 
 class Arm:
     def __init__(self):
-        self.a = 25.55
-        self.d2 = 22.9
-        self.l1 = 81.6
-        self.l2 = 81.6
+        self.a = 18.75
+        self.d2 = 25
+        self.l1 = 86.75
+        self.l2 = 86.75
         self.l3 = 71.75
         self.l4 = 87.7744
         self.Link0 = Link(0)
@@ -76,10 +76,10 @@ class Arm:
         self.Link3 = Link(self.l2)
         self.Link4 = Link(self.l3)
         self.Link5 = Link(self.l4)
-        self.Joint1 = Joint(XL330(1), self.Link0, self.Link1, -pi, pi, 0)
-        self.Joint2 = Joint(AX12A(2), self.Link1, self.Link2, 0, pi / 2, 20)
-        self.Joint3 = Joint(AX12A(3), self.Link2, self.Link3, -pi / 2, pi / 2, 20)
-        self.Joint4 = Joint(AX12A(4), self.Link3, self.Link4, -pi / 2, pi / 2, 40)
+        self.Joint1 = Joint(XL430(1), self.Link0, self.Link1, -pi, pi, 0)
+        self.Joint2 = Joint(XL430(2), self.Link1, self.Link2, 0, pi / 2, 20)
+        self.Joint3 = Joint(XL430(3), self.Link2, self.Link3, -pi / 2, pi / 2, 20)
+        self.Joint4 = Joint(XL430(4), self.Link3, self.Link4, -pi / 2, pi / 2, 40)
         self.Joint5 = Joint(XL330(5), self.Link4, self.Link5, -pi / 2, pi / 2, 0)
         self.port = Port('COM3') if os.name == 'nt' else Port('/tty/usb0')
         self.port.open_port()
@@ -96,7 +96,8 @@ class Arm:
                 if motor.type == 'AX12A':
                     motor.send_instruction(motor.Moving_Speed, joint.speed_limit, self.port)
                 else:
-                    motor.send_instruction(motor.Velocity_Limit, joint.speed_limit, self.port)
+                    motor.send_instruction(motor.Profile_Accel, 10, self.port)
+                    motor.send_instruction(motor.Profile_Velocity, 300, self.port)
             except:
                 pass
 
@@ -107,7 +108,7 @@ class Arm:
                 motor.send_instruction(motor.Torque_Ena, 0, self.port)
             except:
                 pass
-
+        self.port.close_port()
     def check_joint_angle(self, joint: Joint, angle):
         return angle >= joint.limit[0] and angle <= joint.limit[1]
 
@@ -179,11 +180,11 @@ class Arm:
                 gamma -= step
                 continue
             theta4 = np.radians(gamma) - theta2 - theta3
-            if not self.check_joint_angle(self.Joint4, np.radians(theta4)):
+            if not self.check_joint_angle(self.Joint4, theta4):
                 gamma -= step
                 continue
             theta5 = pitch - np.radians(gamma)
-            if not self.check_joint_angle(self.Joint5, np.radians(theta5)):
+            if not self.check_joint_angle(self.Joint5, theta5):
                 gamma -= step
                 continue
             solution_found = True
@@ -191,8 +192,8 @@ class Arm:
             solution['theta3'] = theta3
             solution['theta4'] = theta4
             solution['theta5'] = theta5
-
             count += 1
+            break
 
             # solution_found = False
             gamma -= 1
@@ -208,7 +209,7 @@ class Arm:
 
     def go_to(self, x, y, z, pitch):
         yaw = np.degrees(arctan2(y, x))
-        pitch = np.degrees(pitch)
+        # pitch = np.degrees(pitch)
         res, solution = self.inverse_kinematics(x, y, z, pitch, yaw)
         if res:
             try:
@@ -228,7 +229,7 @@ class Arm:
             except:
                 pass
             try:
-                self.Joint5.go_to_angle(np.degrees(solution['theta5']), self.port)
+                self.Joint5.go_to_angle(np.degrees(-solution['theta5']), self.port)
             except:
                 pass
             # self.Joint5.go_to_angle(solution['theta1'])
@@ -238,12 +239,14 @@ class Arm:
 
 if __name__ == '__main__':
     arm = Arm()
-    arm.forward_kinematics(73, 73, -72, 44, 16)
+    # arm.forward_kinematics(10, 15, 20, 25, 30)
+
     try:
         # arm.go_to(10, -10, 200, 90)
-        arm.go_to(arm.eef.x, arm.eef.y, arm.eef.z, arm.eef.pitch)
+        arm.go_to(220, 0, 200, 90)
     except:
         arm.arm_shutdown()
+        sys.exit()
     # arm.forward_kinematics(
     #     np.degrees(solution['theta1']),
     #     np.degrees(solution['theta2']),
@@ -258,6 +261,10 @@ if __name__ == '__main__':
     # arm.Joint4.go_to_angle(45, arm.port)
 
     # print(arm.Joint1.get_cur_angle(arm.port))
-    input()
-    arm.arm_shutdown()
-    sys.exit()
+    finally:
+        input()
+        arm.arm_shutdown()
+        arm.port.close_port()
+        sys.exit()
+
+

@@ -33,32 +33,39 @@ def qrcode_recognition(img):
 # print(cap.get(cv.CAP_PROP_BRIGHTNESS))
 # set_camera_properties(cap)
 # size = (int(cap.get(cv.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv.CAP_PROP_FRAME_HEIGHT)))
-cam = realsense_cam((1280, 720), 30)
-try:
-    while True:
-        # ret, frame = cap.read()
-        frames = cam.get_frames()
-        frame = frames['color']
-        grayed = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-        threshold = cv.adaptiveThreshold(grayed, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 27, 2)
-        threshold = cv.morphologyEx(threshold, cv.MORPH_CLOSE, (3, 3))
-        # tmp = qrcode_recognition(frame)
-        msgs = pyzbar.decode(grayed)
-        if msgs:
-        # (x, y, w, h) = msg.rect
-        # cv.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
-            data = msgs[0].data.decode("utf-8")
-            # ret_data.append(data)
-            print(data)
-            send_serial(data)
+def qr_scan():
+    cam = realsense_cam((1280, 720), 30)
+    try:
+        while True:
+            # ret, frame = cap.read()
+            frames = cam.get_frames()
+            frame = frames['color']
+            grayed = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+            threshold = cv.adaptiveThreshold(grayed, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 27, 2)
+            threshold = cv.morphologyEx(threshold, cv.MORPH_CLOSE, (3, 3))
+            # tmp = qrcode_recognition(frame)
+            msgs = pyzbar.decode(grayed)
+            if msgs:
+            # (x, y, w, h) = msg.rect
+            # cv.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+                data = msgs[0].data.decode("utf-8")
+                # ret_data.append(data)
+                print(data)
+                send_serial(data)
+                break
 
-            # cv.putText(frame, data, (x, y - 10), cv.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255), 2)
+                # cv.putText(frame, data, (x, y - 10), cv.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255), 2)
 
-        # cv.imshow("camera", frame)
-        # if cv.waitKey(1) == 27:
-        #     cv.destroyAllWindows()
-        #     break
+            # cv.imshow("camera", frame)
+            # if cv.waitKey(1) == 27:
+            #     cv.destroyAllWindows()
+            #     break
 
-finally:
-    cam.stop()
-    sys.exit()
+    finally:
+        cam.stop()
+        return data
+        # sys.exit()
+
+
+if __name__ == '__main__':
+    qr_scan()
