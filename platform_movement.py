@@ -24,17 +24,34 @@ class Platform:
         self.kp = 1
         self.ki = 0
         self.kd = 0
+        self.vx = 0
+        self.vy = 0
+        self.vz = 0
+        self.dx = 0
+        self.dy = 0
+        self.dz = 0
         self.motor_lf = DCMotor(self.master, 1)
         self.motor_lb = DCMotor(self.master, 2)
         self.motor_rf = DCMotor(self.master, 3)
         self.motor_rb = DCMotor(self.master, 4)
         self.last_a1, self.last_a2, self.last_a3, self.last_a4 = self.master.get_motor_encoder()
+        self.d = threading.Thread(target=self.get_cur_position)
         # self.condition.
     # def motor
         self.last_time = time.time()
 
     def get_cur_position(self):
-        return 1, 2
+        while True:
+            ax, ay, az = self.master.get_accelerometer_data()
+            self.vx += ax * 0.1
+            self.vy += ay * 0.1
+            self.vz += az * 0.1
+            self.dx += self.vx * 0.1
+            self.dy += self.vy * 0.1
+            self.dz += self.vz * 0.1
+            time.sleep(0.1)
+            print(ax, ay, az, self.vx, self.vy, self.vz, self.dx, self.dy, self.dz, '\r', sep=' ', end='')
+
         pass
 
     def pid_velocity(self, err):
@@ -42,16 +59,7 @@ class Platform:
         pass
 
     def straight_pid_distance(self, x, y):
-        cur_x, cur_y = self.get_cur_position()
-        ex = x - cur_x
-        ey = y - cur_y
-        vx = self.pid_velocity(ex)
-        vy = self.pid_velocity(ey)
-        self.master.set_car_motion(0.15, 0, 0)
-        # time.sleep(50)
-        # self.master.set_car_motion(0, 0, 0)
-        self.master.set
-        print(time.time())
+
         pass
 
     def stop(self):
@@ -71,7 +79,7 @@ class Platform:
 
     def go(self):
         self.master.set_car_motion(-0.6, 0, 0)
-        time.sleep(0.3)
+        time.sleep(0.43)
         self.master.set_car_motion(0, 0.6, 0)
         time.sleep(2.5)
         self.stop()
@@ -95,4 +103,4 @@ if __name__ == '__main__':
     #     p.stop()
     #     sys.exit()
     # pass
-    p.master
+    p.go()
