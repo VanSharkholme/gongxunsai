@@ -34,23 +34,45 @@ class Platform:
         self.motor_lb = DCMotor(self.master, 2)
         self.motor_rf = DCMotor(self.master, 3)
         self.motor_rb = DCMotor(self.master, 4)
+        self.ax = []
+        self.ay = []
+        self.az = []
+        self.smoothed_ax = 0
+        self.smoothed_ay = 0
         self.last_a1, self.last_a2, self.last_a3, self.last_a4 = self.master.get_motor_encoder()
         self.d = threading.Thread(target=self.get_cur_position)
         # self.condition.
     # def motor
         self.last_time = time.time()
+        self.lock = threading.Lock()
+
+    def get_smoothed_sensor(self):
+        while True:
+            x, y, z = self.master.get_accelerometer_data()
+            if len(self.ax) > 10:
+                del(self.ax[0])
+            self.ax.append(x)
+            if len(self.ay) > 10:
+                del(self.ay[0])
+            self.ax.append(x)
+            self.lock.acquire()
+            self.smoothed_ax = sum(self.ax) / len(self.ax)
+            self.smoothed_ay = sum(self.ay) / len(self.ay)
+            self.lock.release()
+
 
     def get_cur_position(self):
         while True:
-            ax, ay, az = self.master.get_accelerometer_data()
+            self.lock.acquire()
+            ax = self.smoothed_ax
+            ay = self.smoothed_ay
+            self.lock.release()
             self.vx += ax * 0.1
             self.vy += ay * 0.1
-            self.vz += az * 0.1
             self.dx += self.vx * 0.1
             self.dy += self.vy * 0.1
-            self.dz += self.vz * 0.1
             time.sleep(0.1)
-            print(ax, ay, az, self.vx, self.vy, self.vz, self.dx, self.dy, self.dz, '\r', sep=' ', end='')
+            print(ax, ay, '|', self.vx, self.vy, '|', self.dx, self.dy, '\r', sep=' ', end='')
 
         pass
 
