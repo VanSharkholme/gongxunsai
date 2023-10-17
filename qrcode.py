@@ -33,8 +33,8 @@ def qrcode_recognition(img):
 # print(cap.get(cv.CAP_PROP_BRIGHTNESS))
 # set_camera_properties(cap)
 # size = (int(cap.get(cv.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv.CAP_PROP_FRAME_HEIGHT)))
-def qr_scan():
-    cam = realsense_cam((1280, 720), 30)
+def qr_scan(cam) -> str:
+    # cam = realsense_cam((1280, 720), 30)
     try:
         while True:
             # ret, frame = cap.read()

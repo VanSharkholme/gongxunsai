@@ -1,0 +1,16 @@
+path: combined_dataset
+
+train: images/train
+val: images/val
+test: images/val
+
+names:
+  0: blue
+  1: green
+  2: red
+  3: blue_top
+  4: green_top
+  5: red_top
+  6: t_blue
+  7: t_green
+  8: t_red

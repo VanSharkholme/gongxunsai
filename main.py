@@ -4,29 +4,118 @@ import serial_screen
 import target_yolo
 import arm_definitions
 import threading
+from platform_movement import forward, back, left, right, ccw, cw, pi
+import qrcode
+from realsense_start import realsense_cam
 
-coordinates = {
+cam = realsense_cam((1280, 720), 30)
+
+def button_pressed():
+    pass
+
+lock = threading.Lock()
+
+is_rotating = False
+def check_rotating():
+    global is_rotating
+    with lock:
+        for k in coordinates[0].keys():
+            for l in range(len(coordinates[0][k])):
+                if coordinates[0][k][l] - coordinates[1][k][l] > 0.01:
+                    is_rotating = True
+                    return
+        is_rotating = False
+
+red = 1
+green = 2
+blue = 3
+round1_ord = []
+round2_ord = []
+coordinates = [
+    {
     'red_object': [],
     'green_object': [],
     'blue_object': [],
     'red_target': [],
     'green_target': [],
     'blue_target': []
-}
-visual_thread = threading.Thread(target=target_yolo.yolo_start, args=(coordinates,))
+    },
+    {
+    'red_object': [],
+    'green_object': [],
+    'blue_object': [],
+    'red_target': [],
+    'green_target': [],
+    'blue_target': []
+    }
+]
 
-def test(a):
-    while True:
-        a['aa'] = time.time()
+visual_thread = threading.Thread(target=target_yolo.yolo_start, args=(cam, coordinates))
+rotation_thread = threading.Thread(target=check_rotating)
 
-d = {'aa': 1}
+visual_thread.start()
 
-temp_thread = threading.Thread(target=test, args=(d,))
-temp_thread.start()
 
-time.sleep(1)
-while True:
-    print(d)
-    time.sleep(1)
+
 p = platform_movement.Platform()
 p.master.create_receive_threading()
+
+# TODO:wait for start signal
+while not button_pressed():
+    pass
+
+p.move(back, 0.43, stop=False)
+p.move(left, 1.5)
+# time.sleep(1)
+qr_msg = qrcode.qr_scan(cam)
+round1_msg, round2_msg = qr_msg.strip().split('+')
+for i in round1_msg:
+    if int(i) == red:
+        round1_ord.append('red_object')
+    elif int(i) == green:
+        round1_ord.append('green_object')
+    elif int(i) == blue:
+        round1_ord.append('blue_object')
+
+for i in round2_msg:
+    if int(i) == red:
+        round2_ord.append('red_object')
+    elif int(i) == green:
+        round2_ord.append('green_object')
+    elif int(i) == blue:
+        round2_ord.append('blue_object')
+
+p.move(left, 1.9)
+# time.sleep(1)
+# for
+# for obj in round1_ord:
+#     cur_coordinate = coordinates[obj]
+
+
+
+
+
+
+p.move(left, 1)
+time.sleep(0.4)
+p.move(ccw, 0.894, pi)
+time.sleep(0.4)
+p.move(left, 1.8)
+time.sleep(3)
+p.move(left, 1.8)
+time.sleep(0.4)
+p.move(ccw, 0.878, pi)
+time.sleep(0.4)
+p.move(left, 1.8)
+time.sleep(3)
+p.move(right, 1.9)
+time.sleep(0.4)
+p.move(cw, 0.875, pi)
+time.sleep(0.4)
+p.move(right, 3.3)
+time.sleep(0.4)
+p.move(cw, 0.883, pi)
+time.sleep(0.4)
+p.move(right, 0.9)
+time.sleep(5)
+

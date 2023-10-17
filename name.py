@@ -3,11 +3,11 @@ import os
 #
 # print(rs.__path__)
 
-path = 'pic/target1/'
+path = 'datasets/combined_dataset/labels_t/'
 f = os.listdir(path)
-n = 422
+n = 835
 for i in f:
-    newname = str(n)+'.jpg'
-    os.rename(path+i, 'targets_orig_data/'+newname)
+    newname = str(n)+'.txt'
+    os.rename(path+i, path+newname)
     n += 1
 print('done')
