@@ -1,20 +1,32 @@
+import time
 import platform_movement
-import qrcode
+import serial_screen
+import target_yolo
+import arm_definitions
+import threading
 
+coordinates = {
+    'red_object': [],
+    'green_object': [],
+    'blue_object': [],
+    'red_target': [],
+    'green_target': [],
+    'blue_target': []
+}
+visual_thread = threading.Thread(target=target_yolo.yolo_start, args=(coordinates,))
 
+def test(a):
+    while True:
+        a['aa'] = time.time()
 
-def wait_start_signal():
-    input()
+d = {'aa': 1}
 
+temp_thread = threading.Thread(target=test, args=(d,))
+temp_thread.start()
 
-wait_start_signal()
+time.sleep(1)
+while True:
+    print(d)
+    time.sleep(1)
 p = platform_movement.Platform()
-p.straight_pid_distance(14, 0)
-p.straight_pid_distance(0, 80)
-obj_order = None
-while not obj_order:
-    obj_order = qrcode.qr_scan()
-p.straight_pid_distance(0, 160)
-
-
-
+p.master.create_receive_threading()

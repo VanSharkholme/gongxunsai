@@ -5,11 +5,21 @@ import threading
 from Rosmaster_Lib import Rosmaster
 import time
 
+forward = 0
+back = 1
+left = 2
+right = 3
+ccw = 4
+cw = 5
+pi = 3.14159265358979
+
+default_speed = 0.6
+
+
 class DCMotor:
     def __init__(self, master, mid):
         self.master = master
         self.id = mid
-
 
 
 class Platform:
@@ -41,8 +51,6 @@ class Platform:
         self.smoothed_ay = 0
         self.last_a1, self.last_a2, self.last_a3, self.last_a4 = self.master.get_motor_encoder()
         self.d = threading.Thread(target=self.get_cur_position)
-        # self.condition.
-    # def motor
         self.last_time = time.time()
         self.lock = threading.Lock()
 
@@ -99,60 +107,53 @@ class Platform:
 
         # print(vx, vy, vz, end='')
 
+    def move(self, direction, t, speed=default_speed, stop=True):
+        if direction == forward:
+            self.master.set_car_motion(speed, 0, 0)
+        elif direction == back:
+            self.master.set_car_motion(-speed, 0, 0)
+        elif direction == left:
+            self.master.set_car_motion(0, speed, 0)
+        elif direction == right:
+            self.master.set_car_motion(0, -speed, 0)
+        elif direction == ccw:
+            self.master.set_car_motion(0, 0, speed)
+        elif direction == cw:
+            self.master.set_car_motion(0, 0, -speed)
+        else:
+            self.master.set_car_motion(0, 0, 0)
+        time.sleep(t)
+        if stop:
+            self.master.set_car_motion(0, 0, 0)
+
+
     def go(self):
-        self.master.set_car_motion(-0.6, 0, 0)
-        time.sleep(0.43)
-        self.master.set_car_motion(0, 0.6, 0)
-        time.sleep(1.5)
-        self.stop()
+        self.move(back, 0.43, stop=False)
+        self.move(left, 1.5)
         time.sleep(1)
-        self.master.set_car_motion(0, 0.6, 0)
-        time.sleep(1.9)
-        self.stop()
+        self.move(left, 1.9)
         time.sleep(1)
-        self.master.set_car_motion(0, 0.6, 0)
-        time.sleep(1)
-        self.stop()
+        self.move(left, 1)
         time.sleep(0.4)
-        self.master.set_car_motion(0, 0, 3.1415926535)
-        time.sleep(0.894)
-        self.stop()
+        self.move(ccw, 0.894, pi)
         time.sleep(0.4)
-        self.master.set_car_motion(0, 0.6, 0)
-        time.sleep(1.8)
-        self.stop()
+        self.move(left, 1.8)
         time.sleep(3)
-        self.master.set_car_motion(0, 0.6, 0)
-        time.sleep(1.8)
-        self.stop()
+        self.move(left, 1.8)
         time.sleep(0.4)
-        self.master.set_car_motion(0, 0, 3.1415926535)
-        time.sleep(0.878)
-        self.stop()
+        self.move(ccw, 0.878, pi)
         time.sleep(0.4)
-        self.master.set_car_motion(0, 0.6, 0)
-        time.sleep(1.8)
-        self.stop()
+        self.move(left, 1.8)
         time.sleep(3)
-        self.master.set_car_motion(0, -0.6, 0)
-        time.sleep(1.9)
-        self.stop()
+        self.move(right, 1.9)
         time.sleep(0.4)
-        self.master.set_car_motion(0, 0, -3.1415926535)
-        time.sleep(0.875)
-        self.stop()
+        self.move(cw, 0.875, pi)
         time.sleep(0.4)
-        self.master.set_car_motion(0, -0.6, 0)
-        time.sleep(3.3)
-        self.stop()
+        self.move(right, 3.3)
         time.sleep(0.4)
-        self.master.set_car_motion(0, 0, -3.1415926535)
-        time.sleep(0.883)
-        self.stop()
+        self.move(cw, 0.883, pi)
         time.sleep(0.4)
-        self.master.set_car_motion(0, -0.6, 0)
-        time.sleep(0.9)
-        self.stop()
+        self.move(right, 0.9)
         time.sleep(5)
 if __name__ == '__main__':
     p = Platform()

@@ -6,14 +6,14 @@ import cv2 as cv
 
 # Load a model
 # model = YOLO('yolov5n.pt')  # build a new model from YAML
-# model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
 # model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # build from YAML and transfer weights
 
 # Train the model
-# model.train(data='targets.yaml', epochs=100, imgsz=640, device=0, workers=0)
+model.train(data='targets.yaml', epochs=100, imgsz=640, device=0, workers=0)
 
-model = YOLO('runs/detect/train8/weights/best.pt')
-model.export(format='engine', device=0)
+# model = YOLO('runs/detect/train8/weights/best.pt')
+# model.export(format='engine', device=0)
 
 # model.train(resume=True)
 

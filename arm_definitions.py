@@ -52,7 +52,7 @@ class Link:
 
 
 class EndEffector:
-    def __init__(self):
+    def __init__(self, motor: XL330 | XL430):
         self.elevation = 15.9
         self.x = 0
         self.y = 0
@@ -60,6 +60,8 @@ class EndEffector:
         self.roll = 0
         self.pitch = 0
         self.yaw = 0
+        self.motor = motor
+
 
 
 class Arm:
@@ -86,7 +88,10 @@ class Arm:
         self.links = [self.Link0, self.Link1, self.Link2, self.Link3, self.Link4, self.Link5]
         self.joints = [self.Joint1, self.Joint2, self.Joint3, self.Joint4, self.Joint5]
         self.joint_init()
-        self.eef = EndEffector()
+        self.eef = EndEffector(XL330(6))
+        self.eef.motor.send_instruction(self.eef.motor.Torque_Ena, 1, self.port)
+        self.eef.motor.send_instruction(self.eef.motor.Goal_Position, 2048, self.port)
+
 
     def joint_init(self):
         for joint in self.joints:
@@ -97,7 +102,7 @@ class Arm:
                     motor.send_instruction(motor.Moving_Speed, joint.speed_limit, self.port)
                 else:
                     motor.send_instruction(motor.Profile_Accel, 10, self.port)
-                    motor.send_instruction(motor.Profile_Velocity, 300, self.port)
+                    motor.send_instruction(motor.Profile_Velocity, 600, self.port)
             except:
                 pass
 
@@ -236,14 +241,25 @@ class Arm:
         else:
             print('No Solution found')
 
+    def grip(self):
+        self.eef.motor.send_instruction(self.eef.motor.Goal_Position, 2048, self.port)
+
+    def release(self):
+        self.eef.motor.send_instruction(self.eef.motor.Goal_Position, 3048, self.port)
+
 
 if __name__ == '__main__':
     arm = Arm()
     # arm.forward_kinematics(10, 15, 20, 25, 30)
 
     try:
+        arm.Joint1.go_to_angle(10, arm.port)
+        arm.Joint2.go_to_angle(80, arm.port)
+        arm.Joint3.go_to_angle(-30, arm.port)
+        arm.Joint4.go_to_angle(60, arm.port)
+        arm.Joint5.go_to_angle(60, arm.port)
         # arm.go_to(10, -10, 200, 90)
-        arm.go_to(220, 0, 200, 90)
+        # arm.go_to(220, 0, 200, 90)
     except:
         arm.arm_shutdown()
         sys.exit()
