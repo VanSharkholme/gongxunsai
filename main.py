@@ -89,7 +89,7 @@ object_holder_positions = {
 }
 
 visual_ready = [False]
-visual_thread = target_yolo.VisualThread()
+visual_thread = target_yolo.VisualThread(cam=cam, ready=visual_ready, res=coordinates, lock=lock)
 rotation_thread = threading.Thread(target=check_rotating, args=(coordinates,))
 visual_thread.start()
 
