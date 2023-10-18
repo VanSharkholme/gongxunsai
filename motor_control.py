@@ -75,7 +75,7 @@ class Motor:
 
     def send_instruction(self,
                          parameter: Parameter, data: int,
-                         port: Port, receive: bool = True) -> tuple[int, int] | int:
+                         port: Port, receive: bool = True):
         p_handler = port.portHandler
         if check_data_range(data, parameter.range) \
                 and port.is_open:
@@ -105,7 +105,7 @@ class Motor:
 
     def reg_write(self,
                   parameter: Parameter, data: int,
-                  port: Port, receive: bool = True) -> tuple[int, int] | int:
+                  port: Port, receive: bool = True):
         p_handler = port.portHandler
         if check_data_range(data, parameter.range) \
                 and port.is_open:

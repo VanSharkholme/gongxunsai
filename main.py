@@ -36,8 +36,15 @@ def check_rotating():
 def go_home(arm, obj=''):
     if obj == 'red_object':
         home = arm.forward_kinematics(-180, 0, 0, 90, 0, )
-    else:
+    elif obj == 'blue_object' or obj == 'green_object':
         home = arm.forward_kinematics(180, 0, 0, 90, 0)
+    else:
+        arm.Joint1.go_to_angle(0, arm.port)
+        arm.Joint2.go_to_angle(0, arm.port)
+        arm.Joint3.go_to_angle(0, arm.port)
+        arm.Joint4.go_to_angle(90, arm.port)
+        arm.Joint5.go_to_angle(-90, arm.port)
+        return
     arm.go_to(home[0], home[1], home[2], home[3])
 
 
@@ -73,7 +80,7 @@ object_holder_positions = {
     'green_object': [-143.19, 84.34, 14]
 }
 
-visual_thread = threading.Thread(target=target_yolo.yolo_start, args=(cam, coordinates))
+visual_thread = threading.Thread(target=target_yolo.yolo_start, args=(cam, coordinates, lock))
 rotation_thread = threading.Thread(target=check_rotating)
 
 visual_thread.start()
@@ -81,8 +88,10 @@ visual_thread.start()
 p = platform_movement.Platform()
 p.master.create_receive_threading()
 arm = arm_definitions.Arm()
-
+go_home(arm)
 # movement_thread = threading.Thread(target=p.move, args=)
+print('arm init')
+sys.exit()
 
 # TODO:wait for start signal
 while not button_pressed():

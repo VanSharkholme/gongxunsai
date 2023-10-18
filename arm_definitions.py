@@ -8,7 +8,7 @@ from motor_control import Motor, MotorGroup, XL330, XL430, Port, COMM_SUCCESS
 
 
 class Joint:
-    def __init__(self, motor: XL330 | XL430, parent, child, low_lim, up_lim, speed_lim):
+    def __init__(self, motor, parent, child, low_lim, up_lim, speed_lim):
         self.parent = parent
         self.child = child
         self.limit = [low_lim, up_lim]
@@ -52,7 +52,7 @@ class Link:
 
 
 class EndEffector:
-    def __init__(self, motor: XL330 | XL430):
+    def __init__(self, motor):
         self.elevation = 15.9
         self.x = 0
         self.y = 0
