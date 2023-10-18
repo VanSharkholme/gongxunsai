@@ -1,3 +1,4 @@
+import sys
 import time
 import platform_movement
 import serial_screen
@@ -10,12 +11,17 @@ from realsense_start import realsense_cam
 
 cam = realsense_cam((1280, 720), 30)
 
+
 def button_pressed():
-    pass
+    input()
+    return True
+
 
 lock = threading.Lock()
 
 is_rotating = False
+
+
 def check_rotating():
     global is_rotating
     with lock:
@@ -26,6 +32,15 @@ def check_rotating():
                     return
         is_rotating = False
 
+
+def go_home(arm, obj=''):
+    if obj == 'red_object':
+        home = arm.forward_kinematics(-180, 0, 0, 90, 0, )
+    else:
+        home = arm.forward_kinematics(180, 0, 0, 90, 0)
+    arm.go_to(home[0], home[1], home[2], home[3])
+
+
 red = 1
 green = 2
 blue = 3
@@ -33,32 +48,41 @@ round1_ord = []
 round2_ord = []
 coordinates = [
     {
-    'red_object': [],
-    'green_object': [],
-    'blue_object': [],
-    'red_target': [],
-    'green_target': [],
-    'blue_target': []
+        'red_object': [0, 0, 0],
+        'green_object': [0, 0, 0],
+        'blue_object': [0, 0, 0],
+        'red_target': [0, 0, 0],
+        'green_target': [0, 0, 0],
+        'blue_target': [0, 0, 0],
+        'closest_object': None
     },
     {
-    'red_object': [],
-    'green_object': [],
-    'blue_object': [],
-    'red_target': [],
-    'green_target': [],
-    'blue_target': []
+        'red_object': [0, 0, 0],
+        'green_object': [0, 0, 0],
+        'blue_object': [0, 0, 0],
+        'red_target': [0, 0, 0],
+        'green_target': [0, 0, 0],
+        'blue_target': [0, 0, 0],
+        'closest_object': None
     }
 ]
+
+object_holder_positions = {
+    'red_object': [1, 1, 1],
+    'blue_object': [1, 1, 1],
+    'green_object': [1, 1, 1]
+}
 
 visual_thread = threading.Thread(target=target_yolo.yolo_start, args=(cam, coordinates))
 rotation_thread = threading.Thread(target=check_rotating)
 
 visual_thread.start()
 
-
-
 p = platform_movement.Platform()
 p.master.create_receive_threading()
+arm = arm_definitions.Arm()
+
+# movement_thread = threading.Thread(target=p.move, args=)
 
 # TODO:wait for start signal
 while not button_pressed():
@@ -87,21 +111,40 @@ for i in round2_msg:
 
 p.move(left, 1.9)
 # time.sleep(1)
-# for
-# for obj in round1_ord:
-#     cur_coordinate = coordinates[obj]
 
-
-
-
-
+for obj in round1_ord:
+    while is_rotating:
+        pass
+    if obj == coordinates[0]['closest_object']:
+        cur_coordinate = coordinates[0][obj]
+        arm.go_to(cur_coordinate[0] * 100, cur_coordinate[1] * 100, cur_coordinate[2] * 100, 90)
+        while arm.is_moving():
+            pass
+        arm.grip()
+        while arm.is_moving():
+            pass
+        go_home(arm, obj)
+        while arm.is_moving():
+            pass
+        place_coordinate = object_holder_positions[obj]
+        arm.go_to(place_coordinate[0], place_coordinate[1], place_coordinate[2], 180)
+        while arm.is_moving():
+            pass
+        arm.release()
+        while arm.is_moving():
+            pass
+        go_home(arm)
 
 p.move(left, 1)
 time.sleep(0.4)
 p.move(ccw, 0.894, pi)
 time.sleep(0.4)
 p.move(left, 1.8)
-time.sleep(3)
+# time.sleep(3)
+
+sys.exit()
+
+
 p.move(left, 1.8)
 time.sleep(0.4)
 p.move(ccw, 0.878, pi)
@@ -118,4 +161,3 @@ p.move(cw, 0.883, pi)
 time.sleep(0.4)
 p.move(right, 0.9)
 time.sleep(5)
-

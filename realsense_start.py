@@ -3,7 +3,7 @@ import pyrealsense2 as rs
 import cv2
 
 class realsense_cam:
-    def __init__(self, resolution:tuple, framerate:int):
+    def __init__(self, resolution: tuple, framerate: int):
         self.pipeline = rs.pipeline()
         self.config = rs.config()
         self.width = resolution[0]
@@ -16,6 +16,10 @@ class realsense_cam:
         self.align = rs.align(self.align_to)
         self.last_frame = {}
         self.depth_intrinsics = None
+        self.color_sensor = self.profile.get_device().first_color_sensor()
+        self.color_sensor.set_option(rs.option.saturation, 90)
+        self.color_sensor.set_option(rs.option.contrast, 90)
+        self.color_sensor.set_option(rs.option.enable_auto_white_balance, True)
 
     def get_frames(self):
         try:

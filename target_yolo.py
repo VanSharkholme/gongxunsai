@@ -15,13 +15,13 @@ def get_center(coordinates):
 def yolo_start(cam, res):
     # cam = realsense_cam((1280, 720), 30)
     global lock
-    with lock:
+    with (((((lock))))):
         model = YOLO('runs/detect/train13/weights/best.pt')
 
         transform_matrix = np.array([
-            [0, -1/np.sqrt(2), 1/np.sqrt(2), 0],
+            [0, -1 / np.sqrt(2), 1 / np.sqrt(2), 0],
             [-1, 0, 0, 0],
-            [0, -1/np.sqrt(2), -1/np.sqrt(2), 0],
+            [0, -1 / np.sqrt(2), -1 / np.sqrt(2), 0],
             [0, 0, 0, 1]
         ])
         transform_matrix = np.matrix(transform_matrix)
@@ -43,8 +43,16 @@ def yolo_start(cam, res):
                 confs = predictions[0].boxes.conf.cpu().numpy()
                 # if len(classes) > 0:
                 #     pass
-                # for k in res[0].keys():
-                #     res[1][k] = res[0][k]
+                for k in res[0].keys():
+                    if k == 'closest_object':
+                        res[1][k] = res[0][k]
+                    else:
+                        for i in range(len(res[0][k])):
+                            res[1][k][i] = res[0][k][i]
+                        for i in range(len(res[0][k])):
+                            res[0][k][i] = -1
+
+                max_d = 999
 
                 for i in range(len(classes)):
                     if confs[i] < 0.7:
@@ -61,20 +69,53 @@ def yolo_start(cam, res):
                     ])
                     raw_coordinate = np.matrix(raw_coordinate)
                     new_coordinate = transform_matrix * raw_coordinate
-                    xtext = 'x ' + str(round(new_coordinate.getA()[0][0], 5))
-                    ytext = 'y ' + str(round(new_coordinate.getA()[1][0], 5))
-                    ztext = 'z ' + str(round(spatial_coordinate[2] * np.sqrt(2) - new_coordinate.getA()[0][0], 5))
+                    x = np.round(new_coordinate.getA()[0][0], 5)
+                    y = np.round(new_coordinate.getA()[1][0], 5)
+                    z = np.round(spatial_coordinate[2] * np.sqrt(2) - new_coordinate.getA()[0][0], 5)
+                    xtext = 'x ' + str(x)
+                    ytext = 'y ' + str(y)
+                    ztext = 'z ' + str(z)
                     #
                     # xtext = 'x ' + str(round(spatial_coordinate[0], 5))
                     # ytext = 'y ' + str(round(spatial_coordinate[1], 5))
                     # ztext = 'z ' + str(round(spatial_coordinate[2], 5))
+                    if name_dict[classes[i]] == 'red_top':
+                        res[0]['red_object'][0] = x
+                        res[0]['red_object'][1] = y
+                        res[0]['red_object'][2] = z
+                    elif name_dict[classes[i]] == 'blue_top':
+                        res[0]['blue_object'][0] = x
+                        res[0]['blue_object'][1] = y
+                        res[0]['blue_object'][2] = z
+                    elif name_dict[classes[i]] == 'green_top':
+                        res[0]['green_object'][0] = x
+                        res[0]['green_object'][1] = y
+                        res[0]['green_object'][2] = z
+                    elif name_dict[classes[i]] == 't_red':
+                        res[0]['red_target'][0] = x
+                        res[0]['red_target'][1] = y
+                        res[0]['red_target'][2] = z
+                    elif name_dict[classes[i]] == 't_blue':
+                        res[0]['blue_target'][0] = x
+                        res[0]['blue_target'][1] = y
+                        res[0]['blue_target'][2] = z
+                    elif name_dict[classes[i]] == 't_green':
+                        res[0]['green_target'][0] = x
+                        res[0]['green_target'][1] = y
+                        res[0]['green_target'][2] = z
 
-
-
-                    # res[0]['red_obj']
-
-
-                    print(str(classes[i])+':'+xtext + '|' +ytext + '|' +ztext)
+                    if (name_dict[classes[i]] == 'red_top' or name_dict[classes[i]] == 'blue_top' or
+                            name_dict[classes[i]] == 'green_top') and spatial_coordinate[2] < max_d:
+                        max_d = spatial_coordinate[2]
+                        if name_dict[classes[i]] == 'red_top':
+                            res[0]['closest_object'] = 'red_object'
+                        elif name_dict[classes[i]] == 'blue_top':
+                            res[0]['closest_object'] = 'blue_object'
+                        elif name_dict[classes[i]] == 'green_top':
+                            res[0]['closest_object'] = 'green_object'
+                    else:
+                        res[0]['closest_object'] = None
+                    # print(str(classes[i]) + ':' + xtext + '|' + ytext + '|' + ztext)
 
                     # cv2.putText(color_frame, xtext, [center[0] + 2, center[1] - 15], cv2.FONT_HERSHEY_PLAIN, 1.25,
                     #             (255, 255, 255), 2)
@@ -92,6 +133,9 @@ def yolo_start(cam, res):
 
                 # cv2.imshow('camera', color_frame)
                 print('===========================================================')
+                print(res[0])
+                print(res[1])
+                print('===========================================================')
                 # c = cv2.waitKey(1)
                 #
                 # if c == 27:
@@ -103,8 +147,28 @@ def yolo_start(cam, res):
         finally:
             cam.stop()
 
+
 if __name__ == '__main__':
     cam = realsense_cam((1280, 720), 30)
-    res = {}
+    res = [
+        {
+            'red_object': [0, 0, 0],
+            'green_object': [0, 0, 0],
+            'blue_object': [0, 0, 0],
+            'red_target': [0, 0, 0],
+            'green_target': [0, 0, 0],
+            'blue_target': [0, 0, 0],
+            'closest_object': None
+        },
+        {
+            'red_object': [0, 0, 0],
+            'green_object': [0, 0, 0],
+            'blue_object': [0, 0, 0],
+            'red_target': [0, 0, 0],
+            'green_target': [0, 0, 0],
+            'blue_target': [0, 0, 0],
+            'closest_object': None
+        }
+    ]
     lock = threading.Lock()
     yolo_start(cam, res)

@@ -92,7 +92,6 @@ class Arm:
         self.eef.motor.send_instruction(self.eef.motor.Torque_Ena, 1, self.port)
         self.eef.motor.send_instruction(self.eef.motor.Goal_Position, 2048, self.port)
 
-
     def joint_init(self):
         for joint in self.joints:
             motor = joint.motor
@@ -114,6 +113,7 @@ class Arm:
             except:
                 pass
         self.port.close_port()
+
     def check_joint_angle(self, joint: Joint, angle):
         return angle >= joint.limit[0] and angle <= joint.limit[1]
 
@@ -143,6 +143,7 @@ class Arm:
         print('pitch:', degrees(self.eef.pitch))
         print('yaw:', degrees(self.eef.yaw))
         print('===================================================')
+        return self.eef.x, self.eef.y, self.eef.z, self.eef.pitch
 
     def inverse_kinematics(self, x, y, z, pitch, yaw):
         count = 0
@@ -246,6 +247,14 @@ class Arm:
 
     def release(self):
         self.eef.motor.send_instruction(self.eef.motor.Goal_Position, 3048, self.port)
+
+    def is_moving(self):
+        for joint in self.joints:
+            if joint.motor.read_info(joint.motor.Moving, self.port):
+                return True
+        if self.eef.motor.read_info(self.eef.motor.Moving, self.port):
+            return True
+        return False
 
 
 if __name__ == '__main__':
