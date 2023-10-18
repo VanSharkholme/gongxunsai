@@ -89,12 +89,14 @@ object_holder_positions = {
 }
 
 visual_ready = [False]
-visual_thread = threading.Thread(target=target_yolo.yolo_start, args=(cam, coordinates, lock, visual_ready))
+visual_thread = target_yolo.VisualThread()
 rotation_thread = threading.Thread(target=check_rotating, args=(coordinates,))
-
 visual_thread.start()
+
 while not visual_ready[0]:
     pass
+
+visual_thread.pause()
 p = platform_movement.Platform()
 p.master.create_receive_threading()
 arm = arm_definitions.Arm()
@@ -102,7 +104,7 @@ go_home(arm, 'blue_object')
 go_home(arm, 'blue_object')
 # movement_thread = threading.Thread(target=p.move, args=)
 print('arm init')
-#input()
+# input()
 
 # TODO:wait for start signal
 while not button_pressed():
@@ -133,7 +135,7 @@ for i in round2_msg:
 p.move(left, 1.9)
 # time.sleep(1)
 print('pick place')
-
+visual_thread.resume()
 if coordinates[0]['red_object'] == [-1, -1, -1] or coordinates[0]['blue_object'] == [-1, -1, -1] or \
         coordinates[0]['green_object'] == [-1, -1, -1]:
     p.move(back, 0.15)
@@ -177,7 +179,6 @@ p.move(left, 1.8)
 # time.sleep(3)
 
 sys.exit()
-
 
 p.move(left, 1.8)
 time.sleep(0.4)
