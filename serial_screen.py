@@ -5,7 +5,7 @@ import serial
 
 def send_serial(message):
     try:
-        portx = "COM4" if os.name == 'nt' else "/dev/ttyTHS1"
+        portx = "COM4" if os.name == 'nt' else "/dev/screen"
         bps = 115200
         timex = 5
         ser = serial.Serial(portx, bps, timeout=timex)

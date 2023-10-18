@@ -83,7 +83,7 @@ class Arm:
         self.Joint3 = Joint(XL430(3), self.Link2, self.Link3, -pi / 2, pi / 2, 20)
         self.Joint4 = Joint(XL430(4), self.Link3, self.Link4, -pi / 2, pi / 2, 40)
         self.Joint5 = Joint(XL330(5), self.Link4, self.Link5, -pi / 2, pi / 2, 0)
-        self.port = Port('COM3') if os.name == 'nt' else Port('/tty/usb0')
+        self.port = Port('COM3') if os.name == 'nt' else Port('/dev/dynamixel')
         self.port.open_port()
         self.links = [self.Link0, self.Link1, self.Link2, self.Link3, self.Link4, self.Link5]
         self.joints = [self.Joint1, self.Joint2, self.Joint3, self.Joint4, self.Joint5]
@@ -243,10 +243,10 @@ class Arm:
             print('No Solution found')
 
     def grip(self):
-        self.eef.motor.send_instruction(self.eef.motor.Goal_Position, 2048, self.port)
+        self.eef.motor.send_instruction(self.eef.motor.Goal_Position, 2455, self.port)
 
     def release(self):
-        self.eef.motor.send_instruction(self.eef.motor.Goal_Position, 3048, self.port)
+        self.eef.motor.send_instruction(self.eef.motor.Goal_Position, 1700, self.port)
 
     def is_moving(self):
         for joint in self.joints:

@@ -68,9 +68,9 @@ coordinates = [
 ]
 
 object_holder_positions = {
-    'red_object': [1, 1, 1],
-    'blue_object': [1, 1, 1],
-    'green_object': [1, 1, 1]
+    'red_object': [-143.19, -84.34, 14],
+    'blue_object': [-166.23, 0, 14],
+    'green_object': [-143.19, 84.34, 14]
 }
 
 visual_thread = threading.Thread(target=target_yolo.yolo_start, args=(cam, coordinates))

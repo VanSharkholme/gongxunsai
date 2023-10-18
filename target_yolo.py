@@ -71,7 +71,10 @@ def yolo_start(cam, res):
                     new_coordinate = transform_matrix * raw_coordinate
                     x = np.round(new_coordinate.getA()[0][0], 5)
                     y = np.round(new_coordinate.getA()[1][0], 5)
-                    z = np.round(spatial_coordinate[2] * np.sqrt(2) - new_coordinate.getA()[0][0], 5)
+                    z = -np.round(spatial_coordinate[2] * np.sqrt(2) - new_coordinate.getA()[0][0], 5)
+                    x += 0.03566
+                    y += 0.0325
+                    z += 0.20466
                     xtext = 'x ' + str(x)
                     ytext = 'y ' + str(y)
                     ztext = 'z ' + str(z)

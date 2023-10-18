@@ -27,7 +27,7 @@ class Platform:
         if os_name == 'nt':
             self.master = Rosmaster(com='COM5')
         else:
-            self.master = Rosmaster(com='/dev/ttyUSB0')
+            self.master = Rosmaster(com='/dev/rosboard')
 
         self.master.create_receive_threading()
         self.condition = threading.Condition()
