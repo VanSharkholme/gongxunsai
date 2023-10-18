@@ -1,6 +1,6 @@
 import sys
 import threading
-
+import time
 from ultralytics import YOLO
 import cv2
 import numpy as np
@@ -35,7 +35,7 @@ def yolo_start(cam, res, lock, ready):
             depth_frame = frames['depth']
             depth_intrinsics = cam.depth_intrinsics
 
-            predictions = model.predict(color_frame, device='0', show=True)
+            predictions = model.predict(color_frame, device='0', show=False, verbose=False)
 
             if ready_cnt > 0:
                 ready_cnt -= 1
@@ -86,6 +86,7 @@ def yolo_start(cam, res, lock, ready):
                 xtext = 'x ' + str(x)
                 ytext = 'y ' + str(y)
                 ztext = 'z ' + str(z)
+                time.sleep(0.015)
                 #
                 # xtext = 'x ' + str(round(spatial_coordinate[0], 5))
                 # ytext = 'y ' + str(round(spatial_coordinate[1], 5))
@@ -144,10 +145,12 @@ def yolo_start(cam, res, lock, ready):
                 #     cv2.circle(color_frame, center, 2, (255, 0, 0), -1)
 
             # cv2.imshow('camera', color_frame)
-            print('===========================================================')
-            print(res[0])
-            print(res[1])
-            print('===========================================================')
+
+            # print('===========================================================')
+            # print(res[0])
+            # print(res[1])
+            # print('===========================================================')
+            
             # c = cv2.waitKey(1)
             #
             # if c == 27:

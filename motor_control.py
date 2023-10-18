@@ -75,7 +75,7 @@ class Motor:
 
     def send_instruction(self,
                          parameter: Parameter, data: int,
-                         port: Port, receive: bool = True):
+                         port: Port, receive: bool = False):
         p_handler = port.portHandler
         if check_data_range(data, parameter.range) \
                 and port.is_open:
@@ -105,7 +105,7 @@ class Motor:
 
     def reg_write(self,
                   parameter: Parameter, data: int,
-                  port: Port, receive: bool = True):
+                  port: Port, receive: bool = False):
         p_handler = port.portHandler
         if check_data_range(data, parameter.range) \
                 and port.is_open:
@@ -134,7 +134,7 @@ class Motor:
                 raise Error("Data out of Range! Action Cancelled!!")
     def read_info(self,
                   parameter: Parameter,
-                  port: Port) -> tuple[int, int, int]:
+                  port: Port):
         p_handler = port.portHandler
         data, res, error = self.packetHandler.readTxRx(p_handler,
                                                        self.ID.cur_value,
@@ -210,7 +210,7 @@ class MotorGroup:
             else:
                 raise Error("Data out of Range! Action Cancelled!!")
 
-    def sync_reg_write(self, port: Port, motor_instructs: list, action: bool = True) -> tuple[int, int] | int:
+    def sync_reg_write(self, port: Port, motor_instructs: list, action: bool = True):
         """
         This function receives an instruction list as parameter, in this list, every
         item should be another list consists of three items in this specific order:

@@ -36,9 +36,9 @@ class Joint:
 
     def go_to_angle(self, angle, port: Port):
         if self.motor.type == 'AX12A':
-            position = int((angle + 150) * 1024 / 300)
+            position = int((angle + 150) * 1023 / 300)
         else:
-            position = int((angle + 180) * 4096 / 360)
+            position = int((angle + 180) * 4095 / 360)
         res = self.motor.send_instruction(self.motor.Torque_Ena, 1, port)
         res = self.motor.send_instruction(self.motor.Goal_Position, position, port)
         return res

@@ -62,7 +62,6 @@ def qr_scan(cam) -> str:
             #     break
 
     finally:
-        cam.stop()
         return data
         # sys.exit()
 
