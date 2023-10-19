@@ -75,7 +75,7 @@ class Motor:
 
     def send_instruction(self,
                          parameter: Parameter, data: int,
-                         port: Port, receive: bool = False):
+                         port: Port, receive: bool = True):
         p_handler = port.portHandler
         if check_data_range(data, parameter.range) \
                 and port.is_open:
@@ -84,10 +84,11 @@ class Motor:
                 res, error = self.packetHandler.writeTxRx(p_handler, self.ID.cur_value,
                                                           parameter.addr, parameter.size,
                                                           data_cleaned)
-                if res != COMM_SUCCESS:
-                    raise Error(self.packetHandler.getTxRxResult(res))
-                elif error != 0:
-                    raise Error(self.packetHandler.getRxPacketError(error))
+                while res != COMM_SUCCESS:
+                    res, error = self.packetHandler.writeTxRx(p_handler, self.ID.cur_value,
+                                                              parameter.addr, parameter.size,
+                                                              data_cleaned)
+
                 return res, error
             else:
                 res = self.packetHandler.writeTxOnly(p_handler, self.ID.cur_value,
@@ -105,7 +106,7 @@ class Motor:
 
     def reg_write(self,
                   parameter: Parameter, data: int,
-                  port: Port, receive: bool = False):
+                  port: Port, receive: bool = True):
         p_handler = port.portHandler
         if check_data_range(data, parameter.range) \
                 and port.is_open:

@@ -87,9 +87,8 @@ class Arm:
         self.port.open_port()
         self.links = [self.Link0, self.Link1, self.Link2, self.Link3, self.Link4, self.Link5]
         self.joints = [self.Joint1, self.Joint2, self.Joint3, self.Joint4, self.Joint5]
-        self.joint_init()
         self.eef = EndEffector(XL330(6))
-        self.eef.motor.send_instruction(self.eef.motor.Torque_Ena, 1, self.port)
+        self.joint_init()
         self.eef.motor.send_instruction(self.eef.motor.Goal_Position, 2048, self.port)
 
     def joint_init(self):
@@ -100,10 +99,13 @@ class Arm:
                 if motor.type == 'AX12A':
                     motor.send_instruction(motor.Moving_Speed, joint.speed_limit, self.port)
                 else:
-                    motor.send_instruction(motor.Profile_Accel, 10, self.port)
+                    motor.send_instruction(motor.Profile_Accel, 20, self.port)
                     motor.send_instruction(motor.Profile_Velocity, 600, self.port)
             except:
                 pass
+        self.eef.motor.send_instruction(self.eef.motor.Torque_Ena, 1, self.port)
+        self.eef.motor.send_instruction(self.eef.motor.Profile_Accel, 50, self.port)
+        self.eef.motor.send_instruction(self.eef.motor.Profile_Velocity, 600, self.port)
 
     def arm_shutdown(self):
         for joint in self.joints:
@@ -221,32 +223,53 @@ class Arm:
             try:
                 self.Joint1.go_to_angle(np.degrees(solution['theta1']), self.port)
             except:
-                pass
+                self.Joint1.go_to_angle(np.degrees(solution['theta1']), self.port)
             try:
                 self.Joint2.go_to_angle(np.degrees(solution['theta2']), self.port)
             except:
-                pass
+                self.Joint2.go_to_angle(np.degrees(solution['theta2']), self.port)
             try:
                 self.Joint3.go_to_angle(np.degrees(solution['theta3']), self.port)
             except:
-                pass
+                self.Joint3.go_to_angle(np.degrees(solution['theta3']), self.port)
             try:
                 self.Joint4.go_to_angle(np.rad2deg(solution['theta4']), self.port)
             except:
-                pass
+                self.Joint4.go_to_angle(np.degrees(solution['theta3']), self.port)
             try:
                 self.Joint5.go_to_angle(np.degrees(-solution['theta5']), self.port)
             except:
-                pass
+                self.Joint5.go_to_angle(np.degrees(-solution['theta5']), self.port)
             # self.Joint5.go_to_angle(solution['theta1'])
         else:
             print('No Solution found')
 
+    def go_to_angle(self, angle1, angle2, angle3, angle4, angle5):
+        try:
+            self.Joint1.go_to_angle(angle1, self.port)
+        except:
+            pass
+        try:
+            self.Joint2.go_to_angle(angle2, self.port)
+        except:
+            pass
+        try:
+            self.Joint3.go_to_angle(angle3, self.port)
+        except:
+            pass
+        try:
+            self.Joint4.go_to_angle(angle4, self.port)
+        except:
+            pass
+        try:
+            self.Joint5.go_to_angle(angle5, self.port)
+        except:
+            pass
     def grip(self):
         self.eef.motor.send_instruction(self.eef.motor.Goal_Position, 2455, self.port)
 
     def release(self):
-        self.eef.motor.send_instruction(self.eef.motor.Goal_Position, 1700, self.port)
+        self.eef.motor.send_instruction(self.eef.motor.Goal_Position, 1300, self.port)
 
     def is_moving(self):
         for joint in self.joints:

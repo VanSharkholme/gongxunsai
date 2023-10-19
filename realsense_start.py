@@ -20,6 +20,7 @@ class realsense_cam:
         self.color_sensor.set_option(rs.option.saturation, 90)
         self.color_sensor.set_option(rs.option.contrast, 90)
         self.color_sensor.set_option(rs.option.enable_auto_white_balance, True)
+        # self.color_sensor.set_option(rs.option.white_balance, 5760)
 
     def get_frames(self):
         try:

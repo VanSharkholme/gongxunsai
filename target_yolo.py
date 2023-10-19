@@ -20,6 +20,17 @@ class VisualThread(threading.Thread):
         self.ready = ready
         self.res = res
         self.lock = lock
+        self.cnt = {
+            'blue': 0,
+            'green': 0,
+            'red': 0,
+            'blue_top': 0,
+            'green_top': 0,
+            'red_top': 0,
+            't_blue': 0,
+            't_green': 0,
+            't_red': 0
+        }
 
     def run(self):
         model = YOLO('runs/detect/train13/weights/best.pt')
@@ -43,7 +54,7 @@ class VisualThread(threading.Thread):
                 depth_frame = frames['depth']
                 depth_intrinsics = self.cam.depth_intrinsics
 
-                predictions = model.predict(color_frame, device='0', show=True, verbose=True)
+                predictions = model.predict(color_frame, device='0', show=True, verbose=False)
 
                 if ready_cnt > 0:
                     ready_cnt -= 1
@@ -65,10 +76,29 @@ class VisualThread(threading.Thread):
                     else:
                         for i in range(len(self.res[0][k])):
                             self.res[1][k][i] = self.res[0][k][i]
-                        for i in range(len(self.res[0][k])):
-                            self.res[0][k][i] = -1
+
 
                 max_d = 999
+
+                self.cnt = {
+                    'blue': 0,
+                    'green': 0,
+                    'red': 0,
+                    'blue_top': 0,
+                    'green_top': 0,
+                    'red_top': 0,
+                    't_blue': 0,
+                    't_green': 0,
+                    't_red': 0
+                }
+
+                for i in range(len(classes)):
+                    cls = classes[i]
+                    if confs[i] < 0.8:
+                        continue
+                    self.cnt[name_dict[cls]] += 1
+
+                self.ready[1] = self.cnt['red_top'] <= 1 and self.cnt['blue_top'] <= 1 and self.cnt['green_top'] <= 1
 
                 for i in range(len(classes)):
                     if confs[i] < 0.7:
@@ -85,11 +115,11 @@ class VisualThread(threading.Thread):
                     ])
                     raw_coordinate = np.matrix(raw_coordinate)
                     new_coordinate = transform_matrix * raw_coordinate
-                    x = np.round(new_coordinate.getA()[0][0], 5)
-                    y = np.round(new_coordinate.getA()[1][0], 5)
-                    z = -np.round(spatial_coordinate[2] * np.sqrt(2) - new_coordinate.getA()[0][0], 5)
-                    x += 0.03566
-                    y += 0.0325
+                    x = new_coordinate.getA()[0][0]
+                    y = new_coordinate.getA()[1][0]
+                    z = -(spatial_coordinate[2] * np.sqrt(2) - new_coordinate.getA()[0][0])
+                    x += 0.025
+                    y += 0.017
                     z += 0.20466
                     xtext = 'x ' + str(x)
                     ytext = 'y ' + str(y)
@@ -126,32 +156,34 @@ class VisualThread(threading.Thread):
                             self.res[0]['green_target'][2] = z
 
                         if (name_dict[classes[i]] == 'red_top' or name_dict[classes[i]] == 'blue_top' or
-                            name_dict[classes[i]] == 'green_top') and spatial_coordinate[2] < max_d:
-                            max_d = spatial_coordinate[2]
+                            name_dict[classes[i]] == 'green_top') and x < max_d:
+                            max_d = x
                             if name_dict[classes[i]] == 'red_top':
                                 self.res[0]['closest_object'] = 'red_object'
                             elif name_dict[classes[i]] == 'blue_top':
                                 self.res[0]['closest_object'] = 'blue_object'
                             elif name_dict[classes[i]] == 'green_top':
                                 self.res[0]['closest_object'] = 'green_object'
-                        else:
-                            self.res[0]['closest_object'] = None
+                            else:
+                                self.res[0]['closest_object'] = None
                     # print(str(classes[i]) + ':' + xtext + '|' + ytext + '|' + ztext)
 
-                    # cv2.putText(color_frame, xtext, [center[0] + 2, center[1] - 15], cv2.FONT_HERSHEY_PLAIN, 1.25,
-                    #             (255, 255, 255), 2)
-                    # cv2.putText(color_frame, ytext, [center[0] + 2, center[1]], cv2.FONT_HERSHEY_PLAIN, 1.25,
-                    #             (255, 255, 255), 2)
-                    # cv2.putText(color_frame, ztext, [center[0] + 2, center[1] + 15], cv2.FONT_HERSHEY_PLAIN, 1.25,
-                    #             (255, 255, 255), 2)
-                    #
-                    # if classes[i] == 0:
-                    #     cv2.circle(color_frame, center, 2, (0, 255, 0), -1)
-                    # elif classes[i] == 1:
-                    #     cv2.circle(color_frame, center, 2, (0, 0, 255), -1)
-                    # elif classes[i] == 2:
-                    #     cv2.circle(color_frame, center, 2, (255, 0, 0), -1)
+                    # print(self.cnt)
 
+                #     cv2.putText(color_frame, xtext, [center[0] + 2, center[1] - 15], cv2.FONT_HERSHEY_PLAIN, 1.25,
+                #                 (255, 255, 255), 2)
+                #     cv2.putText(color_frame, ytext, [center[0] + 2, center[1]], cv2.FONT_HERSHEY_PLAIN, 1.25,
+                #                 (255, 255, 255), 2)
+                #     cv2.putText(color_frame, ztext, [center[0] + 2, center[1] + 15], cv2.FONT_HERSHEY_PLAIN, 1.25,
+                #                 (255, 255, 255), 2)
+                #
+                #     if classes[i] == 0:
+                #         cv2.circle(color_frame, center, 2, (0, 255, 0), -1)
+                #     elif classes[i] == 1:
+                #         cv2.circle(color_frame, center, 2, (0, 0, 255), -1)
+                #     elif classes[i] == 2:
+                #         cv2.circle(color_frame, center, 2, (255, 0, 0), -1)
+                #
                 # cv2.imshow('camera', color_frame)
 
                 # print('===========================================================')
@@ -166,7 +198,7 @@ class VisualThread(threading.Thread):
                 #     cam.stop()
                 #     sys.exit()
                 #     break
-
+            time.sleep(0.1)
         finally:
             self.cam.stop()
 
@@ -207,10 +239,33 @@ if __name__ == '__main__':
         }
     ]
     lock = threading.Lock()
-    ready = [False]
+    ready = [False, False]
+    is_rotating = [True]
     vthread = VisualThread(cam=cam, ready=ready, res=res, lock=lock)
     vthread.start()
-    time.sleep(5)
-    vthread.pause()
-    input()
-    vthread.resume()
+
+
+    def check_rotating(coordinates, is_rotating, lock):
+        while True:
+            with lock:
+                for k in coordinates[0].keys():
+                    if k == 'closest_object':
+                        continue
+                    for l in range(len(coordinates[0][k])):
+                        if coordinates[0][k][l] - coordinates[1][k][l] > 0.001:
+                            print('is_rotating', is_rotating, '\r', end='')
+                            is_rotating[0] = True
+                is_rotating[0] = False
+                print('is_rotating', is_rotating, '\r', end='')
+
+
+    # rotation_thread = threading.Thread(target=check_rotating, args=(res, is_rotating, lock))
+    # rotation_thread.start()
+    check_rotating(res, is_rotating, lock)
+    # while True:
+    #     print(is_rotating)
+    #     time.sleep(1)
+
+    # while True:
+    #     print(ready)
+    #     time.sleep(1)
